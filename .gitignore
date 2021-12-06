@@ -12,6 +12,8 @@ build/
 develop-eggs/
 dist/
 downloads/
+QARealtimeCollector/log/
+QARealtimeCollector/datahandler/log/
 eggs/
 .eggs/
 lib/

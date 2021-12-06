@@ -19,7 +19,7 @@ class QARTC_Stock(QA_Tdx_Executor):
                                       exchange='QARealtime_Market', routing_key='stock')
         self.sub.callback = self.callback
         self.pub = publisher(
-            host=eventmq_ip, exchange='stocktransaction')
+            host=eventmq_ip, exchange='stocktransaction_1')
         threading.Thread(target=self.sub.start, daemon=True).start()
 
     def subscribe(self, code):
@@ -73,9 +73,9 @@ class QARTC_Stock(QA_Tdx_Executor):
 if __name__ == "__main__":
     r = QARTC_Stock()
     r.subscribe('000001')
-    r.subscribe('000002')
+    #r.subscribe('000002')
     r.start()
-
+    '''
     r.subscribe('600010')
 
     import json
@@ -87,3 +87,4 @@ if __name__ == "__main__":
     }), routing_key='stock')
 
     r.unsubscribe('000001')
+    '''

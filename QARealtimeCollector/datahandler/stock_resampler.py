@@ -16,6 +16,7 @@ import multiprocessing
 import os
 import threading
 import time
+from typing import ContextManager
 
 import click
 import pandas as pd
@@ -23,6 +24,9 @@ from QAPUBSUB.consumer import subscriber, subscriber_routing
 from QAPUBSUB.producer import publisher
 from QARealtimeCollector.setting import eventmq_ip
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
+
+import sys
+sys.path.append("..")
 
 from utils.common import create_empty_stock_df, tdx_stock_bar_resample_parallel, util_is_trade_time, \
     get_file_name_by_date, logging_csv
@@ -122,7 +126,10 @@ class QARTCStockBarResampler(QA_Thread):
         pass
 
     def on_message_callback(self, channel, method, properties, body):
-        context = pd.read_msgpack(body)
+        context = pd.DataFrame(json.loads(body))
+        logger.info(context)
+
+        # context = pd.read_msgpack(body)
         # merge update
         if self.market_data is None:
             # self.market_data = context
@@ -149,7 +156,7 @@ class QARTCStockBarResampler(QA_Thread):
             cost_time = (end_time - cur_time).total_seconds()
             logger.info("数据重采样耗时,cost: %s" % cost_time)
             logger.info("发送重采样数据中start")
-            self.publish_msg(bar_data.to_msgpack())
+            self.publish_msg(bar_data.to_json())
             logger.info("发送重采样数据完毕end")
 
             logger.info(bar_data.to_csv(float_format='%.3f'))

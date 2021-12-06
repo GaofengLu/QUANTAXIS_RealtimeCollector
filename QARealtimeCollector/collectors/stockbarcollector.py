@@ -23,11 +23,14 @@ from QAPUBSUB.producer import publisher
 from QARealtimeCollector.setting import eventmq_ip
 from QUANTAXIS.QAFetch.QAQuery_Advance import QA_fetch_stock_min_adv, QA_fetch_stock_day_adv, QA_fetch_index_day_adv
 from QUANTAXIS.QAUtil.QADate_trade import QA_util_get_pre_trade_date
-from pandas import concat, DataFrame, DatetimeIndex
+from pandas import concat, DataFrame, DatetimeIndex, Series
 
-from QARealtimeCollector.utils.QATdx_adv import QA_Tdx_Executor
+from QUANTAXIS.QAFetch.QATdx_adv import QA_Tdx_Executor
+#from QARealtimeCollector.utils.QATdx_adv import QA_Tdx_Executor
 # from utils.TdxAdv import QA_Tdx_Executor
 from QARealtimeCollector.utils.common import util_is_trade_time, get_file_name_by_date, logging_csv
+from pandas.core.series import Series
+import pyarrow as pa
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +132,19 @@ class QARTCStockBar(QA_Tdx_Executor):
         """
         cur_time = datetime.datetime.now()
         data = self.get_security_bar_concurrent(self.code_list, frequency, lens)
+        dfs = []
+        logger.info(data)
         if len(data) > 0:
             self.last_update_time = datetime.datetime.now()
+            for i in range(len(data)):
+                df = DataFrame(data[i])
+                df['code'] = self.code_list[i]
+                dfs.append(df)
+
         end_time = datetime.datetime.now()
         cost_time = (end_time - cur_time).total_seconds()
         logger.info("request请求数据完成，耗时, cost: %s 秒" % cost_time)
-        return concat(data, sort=False).drop_duplicates()
+        return concat(dfs, sort=False).drop_duplicates()
 
     def get_history_data(self, code_list, frequency="1min", n=1):
         """
@@ -261,7 +271,7 @@ class QARTCStockBar(QA_Tdx_Executor):
         logger.info(context.to_csv(float_format='%.3f'))
         filename = get_file_name_by_date('stock.collector.%s.csv', self.log_dir)
         logging_csv(context, filename, index=True)
-        self.publish_msg(context.to_msgpack())  # send with maspack
+        self.publish_msg(context.to_json())  # send with maspack
         del context
 
     def run(self):

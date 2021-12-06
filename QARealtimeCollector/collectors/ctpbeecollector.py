@@ -79,7 +79,7 @@ class QARTC_CtpBeeCollector(QA_Thread):
         time = curtime
         if curtime[11:13] in ['00', '01', '02',
                               '09', '10', '11',
-                              '13', '14', '15',
+                              '13', '14', '15', '16', '17',
                               '21', '22', '23']:
 
             try:
@@ -114,6 +114,7 @@ class QARTC_CtpBeeCollector(QA_Thread):
                 print(e)
 
     def callback(self, a, b, c, body):
+        print(body)
         self.upcoming_data(json.loads(body))
 
     def run(self):
@@ -122,7 +123,8 @@ class QARTC_CtpBeeCollector(QA_Thread):
 
 
 if __name__ == '__main__':
-    pass
+    r = QARTC_CtpBeeCollector('zn2111')
+    r.start()
     # import click
     # @click.command()
     # @click.option('--code', default='au1910')
